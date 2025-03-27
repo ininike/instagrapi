@@ -10,8 +10,8 @@ import asyncio
 logger = logging.getLogger()
 cl = Client()
 
-USERNAME = 'asap.nike'
-PASSWORD = 'ini100%!'
+USERNAME = ''
+PASSWORD = ''
 
 class InstagramSearch:
     
@@ -34,54 +34,6 @@ class InstagramSearch:
         with open('response.txt','w',encoding='utf-8') as f:
             print(users)
             f.write(str(users))
-            
-    @staticmethod
-    async def _fetch_next_comments(post_id: str, comments_end_cursor: str) -> dict:
-        """ Paginate thtough comments"""
-        comments, comments_end_cursor = cl.media_comments_gql_chunk(post_id, comments_end_cursor)
-        comments = [ InstagramSearch._to_dict(comment) for comment in comments ]
-        return {'comments': comments, 'comments_end_cursor': comments_end_cursor}
-        
-    @classmethod
-    async def _login(self,USERNAME,PASSWORD):
-        
-        session = cl.load_settings("./session.json")
-
-        login_via_session = False
-        login_via_pw = False
-
-        if session:
-            try:
-                cl.set_settings(session)
-                cl.login(USERNAME, PASSWORD)
-
-                # check if session is valid
-                try:
-                    cl.get_timeline_feed()
-                except LoginRequired:
-                    logger.info("Session is invalid, need to login via username and password")
-
-                    awaold_session = cl.get_settings()
-
-                    # use the same device uuids across logins
-                    cl.set_settings({})
-                    cl.set_uuids(old_session["uuids"])
-
-                    cl.login(USERNAME, PASSWORD)
-                login_via_session = True
-            except Exception as e:
-                logger.info("Couldn't login user using session information: %s" % e)
-
-        if not login_via_session:
-            try:
-                logger.info("Attempting to login via username and password. username: %s" % USERNAME)
-                if cl.login(USERNAME, PASSWORD):
-                    login_via_pw = True
-            except Exception as e:
-                logger.info("Couldn't login user using username and password: %s" % e)
-
-        if not login_via_pw and not login_via_session:
-            raise Exception("Couldn't login user with either password or session")
         
     @classmethod    
     def _to_dict(self, obj):
